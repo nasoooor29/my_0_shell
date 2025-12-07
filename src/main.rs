@@ -1,20 +1,9 @@
-use std::{
-    fmt::Arguments,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use crate::utils::errors::print_red;
 
 pub mod commands;
 pub mod utils;
-
-fn _shitshow() {
-    print!("help")
-}
-
-fn _shitshow2() {
-    print!("help")
-}
 
 fn main() {
     // Clear terminal
