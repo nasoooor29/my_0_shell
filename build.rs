@@ -12,28 +12,31 @@ fn main() {
 
         if path.extension().and_then(|s| s.to_str()) == Some("rs") {
             let file = path.file_stem().unwrap().to_str().unwrap();
+
             if file == "mod" {
                 continue;
             }
-            output.push_str(&format!(
-                "reg.insert(
-    \"{file}\".to_string(),
-    Command {{
-        name: \"{file}\".to_string(),
-        func: {file}::run as CmdFn,
-        usage: {file}::USAGE.to_string(),
-        }},
-    );\n"
-            ));
+
             imports.push_str(&format!("pub mod {};\n", file));
+
+            output.push_str(&format!(
+                r#"        reg.insert(
+            "{file}".to_string(),
+            Command {{
+                name: "{file}".to_string(),
+                func: {file}::run as CmdFn,
+                usage: {file}::USAGE.to_string(),
+            }},
+        );
+"#
+            ));
         }
     }
 
     let final_output = format!(
-        "use std::collections::HashMap;
+        r#"use std::collections::HashMap;
 
-{imports}
-use crate::utils::errors::ShellErrs;
+{imports}use crate::utils::errors::ShellErrs;
 
 pub type CmdFn = fn(&[String]) -> Result<(), ShellErrs>;
 
@@ -46,9 +49,10 @@ pub struct Command {{
 pub fn init_registry() -> HashMap<String, Command> {{
     let mut reg = HashMap::new();
 
-{output}
-    return reg;
-}}"
+{output}    reg
+}}
+"#
     );
+
     fs::write("./src/commands/mod.rs", final_output).unwrap();
 }
