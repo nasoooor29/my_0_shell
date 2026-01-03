@@ -5,9 +5,21 @@ pub enum ShellErrs {
     InvalidFlag { flag: String },
 }
 
-/// Print red-colored text using `format_args!`
-pub fn print_red(args: std::fmt::Arguments) {
-    eprint!("\x1b[31m{}\x1b[0m\n", args);
+pub struct Printer;
+
+impl Printer {
+    pub fn red(args: std::fmt::Arguments) {
+        eprint!("\x1b[31m{}\x1b[0m\n", args);
+    }
+    pub fn green(args: std::fmt::Arguments) {
+        eprint!("\x1b[32m{}\x1b[0m\n", args);
+    }
+    pub fn yellow(args: std::fmt::Arguments) {
+        eprint!("\x1b[33m{}\x1b[0m\n", args);
+    }
+    pub fn blue(args: std::fmt::Arguments) {
+        eprint!("\x1b[34m{}\x1b[0m\n", args);
+    }
 }
 
 impl ShellErrs {
@@ -28,23 +40,23 @@ impl ShellErrs {
     pub fn print(&self, command_name: &str, usage: &str) {
         match self {
             ShellErrs::InvalidNumberOfArguments { expected, found } => {
-                print_red(format_args!(
+                Printer::red(format_args!(
                     "Error: Invalid number of arguments for command '{}'. Expected {}, found {}.\n",
                     command_name, expected, found
                 ));
-                print_red(format_args!("Usage:\n{}\n", usage));
+                Printer::red(format_args!("Usage:\n{}\n", usage));
             }
 
             ShellErrs::InvalidFlag { flag } => {
-                print_red(format_args!(
+                Printer::red(format_args!(
                     "Error: Invalid flag '{}' for command '{}'.\n",
                     flag, command_name
                 ));
-                print_red(format_args!("Usage:\n{}\n", usage));
+                Printer::red(format_args!("Usage:\n{}\n", usage));
             }
 
             ShellErrs::General(msg) => {
-                print_red(format_args!(
+                Printer::red(format_args!(
                     "An error occurred while executing command '{}': {}\n",
                     command_name, msg
                 ));
