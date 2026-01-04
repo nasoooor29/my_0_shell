@@ -27,52 +27,70 @@ impl Drop for RawMode {
     }
 }
 
-/// Key events from terminal input
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Key {
     Char(char),
+    Ctrl(char), // Ctrl + letter (A–Z, a–z)
     Enter,
     Backspace,
-    ArrowUp,
-    ArrowDown,
-    ArrowLeft,
-    ArrowRight,
-    CtrlC,
-    CtrlD,
+    Arrow(Direction),
+    Esc,
     Unknown,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+fn read_escape_sequence() -> io::Result<Key> {
+    let mut seq = [0u8; 2];
+
+    // If we can't read more bytes, it's a plain Esc key
+    if io::stdin().read_exact(&mut seq).is_err() {
+        return Ok(Key::Esc);
+    }
+
+    if seq[0] != b'[' {
+        return Ok(Key::Esc);
+    }
+
+    Ok(match seq[1] {
+        b'A' => Key::Arrow(Direction::Up),
+        b'B' => Key::Arrow(Direction::Down),
+        b'C' => Key::Arrow(Direction::Right),
+        b'D' => Key::Arrow(Direction::Left),
+        _ => Key::Unknown,
+    })
 }
 
 /// Read a single key from stdin
 pub fn read_key() -> io::Result<Key> {
     let mut buf = [0u8; 1];
     io::stdin().read_exact(&mut buf)?;
+    let b = buf[0];
 
-    match buf[0] {
-        b'\n' | b'\r' => Ok(Key::Enter),
-        127 | 8 => Ok(Key::Backspace),
-        3 => Ok(Key::CtrlC),
-        4 => Ok(Key::CtrlD),
-        27 => {
-            // Escape sequence
-            let mut seq = [0u8; 2];
-            if io::stdin().read_exact(&mut seq).is_err() {
-                return Ok(Key::Unknown);
-            }
-            if seq[0] == b'[' {
-                match seq[1] {
-                    b'A' => Ok(Key::ArrowUp),
-                    b'B' => Ok(Key::ArrowDown),
-                    b'C' => Ok(Key::ArrowRight),
-                    b'D' => Ok(Key::ArrowLeft),
-                    _ => Ok(Key::Unknown),
-                }
-            } else {
-                Ok(Key::Unknown)
-            }
-        }
-        c if c >= 32 && c < 127 => Ok(Key::Char(c as char)),
-        _ => Ok(Key::Unknown),
-    }
+    Ok(match b {
+        // Enter
+        b'\n' | b'\r' => Key::Enter,
+
+        // Backspace (DEL or BS)
+        127 | 8 => Key::Backspace,
+
+        // Ctrl+A (1) .. Ctrl+Z (26)
+        1..=26 => Key::Ctrl((b + b'a' - 1) as char),
+
+        // Escape or escape sequence
+        27 => read_escape_sequence()?,
+
+        // Printable ASCII
+        c if (32..127).contains(&c) => Key::Char(c as char),
+
+        _ => Key::Unknown,
+    })
 }
 
 /// Read a line with history support
@@ -96,14 +114,14 @@ pub fn read_line(
                 println!();
                 return Ok(Some(input));
             }
-            Key::CtrlC => {
+            Key::Ctrl('c') => {
                 println!("^C");
                 input.clear();
                 cursor_pos = 0;
                 print!("{}", prompt);
                 io::stdout().flush()?;
             }
-            Key::CtrlD => {
+            Key::Ctrl('d') => {
                 if input.is_empty() {
                     println!();
                     return Ok(None); // EOF
@@ -116,7 +134,7 @@ pub fn read_line(
                     redraw_line(prompt, &input, cursor_pos)?;
                 }
             }
-            Key::ArrowUp => {
+            Key::Arrow(Direction::Up) => {
                 if !history.is_empty() && *history_cursor > 0 {
                     if *history_cursor == history.len() {
                         temp_input = input.clone();
@@ -127,7 +145,7 @@ pub fn read_line(
                     redraw_line(prompt, &input, cursor_pos)?;
                 }
             }
-            Key::ArrowDown => {
+            Key::Arrow(Direction::Down) => {
                 if *history_cursor < history.len() {
                     *history_cursor += 1;
                     if *history_cursor == history.len() {
@@ -139,14 +157,14 @@ pub fn read_line(
                     redraw_line(prompt, &input, cursor_pos)?;
                 }
             }
-            Key::ArrowLeft => {
+            Key::Arrow(Direction::Left) => {
                 if cursor_pos > 0 {
                     cursor_pos -= 1;
                     print!("\x1b[D");
                     io::stdout().flush()?;
                 }
             }
-            Key::ArrowRight => {
+            Key::Arrow(Direction::Right) => {
                 if cursor_pos < input.len() {
                     cursor_pos += 1;
                     print!("\x1b[C");
@@ -163,7 +181,15 @@ pub fn read_line(
                     redraw_line(prompt, &input, cursor_pos)?;
                 }
             }
-            Key::Unknown => {}
+            Key::Esc => {
+                // Ignore escape key
+            }
+            Key::Unknown => {
+                println!("\nUnknown key pressed");
+            }
+            _ => {
+                // Ignore other keys
+            }
         }
     }
 }

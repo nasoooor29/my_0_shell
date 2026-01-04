@@ -52,7 +52,6 @@ fn main() {
         let cmd = match reg.get(command_name) {
             None => {
                 Printer::red(format_args!(
-
                     "Unknown command: '{command_name}'. \nType 'help' for a list of commands."
                 ));
                 continue;
