@@ -19,15 +19,15 @@ fn main() {
     loop {
         history_cursor = history.len();
 
-        let input =
-            match terminal::read_line("\x1b[34moh lord:\x1b[0m", &history, &mut history_cursor) {
-                Ok(Some(line)) => line,
-                Ok(None) => break, // EOF (Ctrl+D)
-                Err(_) => {
-                    println!("Error reading input. Please try again.");
-                    continue;
-                }
-            };
+        let input = match terminal::read_line("\x1b[32m❯ \x1b[0m", &history, &mut history_cursor)
+        {
+            Ok(Some(line)) => line,
+            Ok(None) => break, // EOF (Ctrl+D)
+            Err(_) => {
+                println!("Error reading input. Please try again.");
+                continue;
+            }
+        };
 
         if input.trim().is_empty() {
             continue;

@@ -12,10 +12,10 @@
 
 ## Other Things
 
-- [ ] Prompt should be at least `$ `.
+- [x] Prompt should be at least `$ `.
 - [x] Unknown command message should exactly be: `Command '<name>' not found`.
 
 - [ ] Remove external binary usage, especially `stty` in terminal handling.
 - [ ] Implement terminal raw/non-canonical mode directly through OS APIs if arrow-key history is kept.
 
-- [ ] Optionally register `exit` as a command for consistency.
+- [x] Optionally register `exit` as a command for consistency.
