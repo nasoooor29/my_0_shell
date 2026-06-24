@@ -1,4 +1,4 @@
-use crate::utils::errors::ShellErrs;
+use crate::{define_options, utils::errors::ShellErrs};
 use std::io::{self, Write};
 
 pub static USAGE: &str = "
@@ -8,16 +8,19 @@ Options:
     -n    Do not print the trailing newline
 ";
 
-pub fn run(args: &[String]) -> Result<(), ShellErrs> {
-    let (newline, text_args) = match args.first() {
-        Some(flag) if flag == "-n" => (false, &args[1..]),
-        _ => (true, args),
-    };
+define_options!(EchoOptions {
+    flags: {
+        'n' => no_newline,
+    },
+    positional: args,
+    default_positional: "",
+});
 
-    print!("{}", text_args.join(" "));
-    if newline {
-        println!();
-    } else {
+pub fn run(args: &[String]) -> Result<(), ShellErrs> {
+    let options = EchoOptions::parse(args)?;
+
+    print!("{}", options.args.join(" "));
+    if options.no_newline {
         io::stdout()
             .flush()
             .map_err(|e| ShellErrs::general(&format!("failed to flush stdout: {}", e)))?;
