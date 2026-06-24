@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 pub mod rm;
 pub mod ls;
+pub mod cat;
 pub mod help;
 pub mod exit;
 pub mod cd;
@@ -35,6 +36,14 @@ pub fn init_registry() -> HashMap<String, Command> {
                 name: "ls".to_string(),
                 func: ls::run as CmdFn,
                 usage: ls::USAGE.to_string(),
+            },
+        );
+        reg.insert(
+            "cat".to_string(),
+            Command {
+                name: "cat".to_string(),
+                func: cat::run as CmdFn,
+                usage: cat::USAGE.to_string(),
             },
         );
         reg.insert(

@@ -3,7 +3,7 @@
 ## Commands Not Implemented
 
 - [x] `echo`
-- [ ] `cat`
+- [x] `cat`
 - [ ] `cp`
 - [x] `rm`: supports `-r`
 - [ ] `mv`
