@@ -1,4 +1,4 @@
-use crate::utils::errors::ShellErrs;
+use crate::{define_options, utils::errors::ShellErrs};
 use std::env;
 
 pub static USAGE: &str = "
@@ -6,8 +6,15 @@ Usage: cd [directory]
 Change the current working directory. With no directory, change to $HOME.
 ";
 
+define_options!(EchoOptions {
+    flags: {},
+    positional: args,
+    default_positional: "",
+});
+
 pub fn run(args: &[String]) -> Result<(), ShellErrs> {
-    if args.len() > 1 {
+    let opts = EchoOptions::parse(args)?;
+    if opts.args[0].is_empty() && args.len() > 1 {
         return Err(ShellErrs::invalid_number_of_arguments(1, args.len()));
     }
 
@@ -16,6 +23,5 @@ pub fn run(args: &[String]) -> Result<(), ShellErrs> {
         None => env::var("HOME").map_err(|_| ShellErrs::general("HOME not set"))?,
     };
 
-    env::set_current_dir(&target)
-        .map_err(|e| ShellErrs::general(&format!("{}: {}", target, e)))
+    env::set_current_dir(&target).map_err(|e| ShellErrs::general(&format!("{}: {}", target, e)))
 }
