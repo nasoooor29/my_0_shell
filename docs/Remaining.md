@@ -6,7 +6,7 @@
 - [x] `cat`
 - [ ] `cp`
 - [x] `rm`: supports `-r`
-- [ ] `mv`
+- [x] `mv`
 - [x] `mkdir`
 - [x] `ls`: supports `-F`
 
