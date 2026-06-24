@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+pub mod rm;
 pub mod ls;
 pub mod help;
 pub mod exit;
@@ -20,6 +21,14 @@ pub struct Command {
 pub fn init_registry() -> HashMap<String, Command> {
     let mut reg = HashMap::new();
 
+        reg.insert(
+            "rm".to_string(),
+            Command {
+                name: "rm".to_string(),
+                func: rm::run as CmdFn,
+                usage: rm::USAGE.to_string(),
+            },
+        );
         reg.insert(
             "ls".to_string(),
             Command {

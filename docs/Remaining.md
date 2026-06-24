@@ -2,10 +2,10 @@
 
 ## Commands Not Implemented
 
-- [ ] `echo`
+- [x] `echo`
 - [ ] `cat`
 - [ ] `cp`
-- [ ] `rm`: needs `-r`
+- [x] `rm`: supports `-r`
 - [ ] `mv`
 - [x] `mkdir`
 - [x] `ls`: supports `-F`
