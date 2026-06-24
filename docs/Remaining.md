@@ -4,7 +4,7 @@
 
 - [x] `echo`
 - [x] `cat`
-- [ ] `cp`
+- [x] `cp`
 - [x] `rm`: supports `-r`
 - [x] `mv`
 - [x] `mkdir`

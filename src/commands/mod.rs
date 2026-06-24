@@ -7,6 +7,7 @@ pub mod help;
 pub mod exit;
 pub mod cd;
 pub mod mkdir;
+pub mod cp;
 pub mod mv;
 pub mod echo;
 pub mod pwd;
@@ -77,6 +78,14 @@ pub fn init_registry() -> HashMap<String, Command> {
                 name: "mkdir".to_string(),
                 func: mkdir::run as CmdFn,
                 usage: mkdir::USAGE.to_string(),
+            },
+        );
+        reg.insert(
+            "cp".to_string(),
+            Command {
+                name: "cp".to_string(),
+                func: cp::run as CmdFn,
+                usage: cp::USAGE.to_string(),
             },
         );
         reg.insert(
