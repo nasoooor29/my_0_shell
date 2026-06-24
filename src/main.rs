@@ -33,10 +33,6 @@ fn main() {
             continue;
         }
 
-        if input.trim().eq_ignore_ascii_case("exit") || input.trim().eq_ignore_ascii_case("quit") {
-            break;
-        }
-
         // Add to history
         let trimmed = input.trim().to_string();
         if history.last() != Some(&trimmed) {
