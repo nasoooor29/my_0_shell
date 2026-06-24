@@ -1,20 +1,58 @@
 use std::io::{self, Read, Write};
-use std::process::Command;
+use std::mem::MaybeUninit;
+use std::os::raw::c_int;
 
-/// Raw terminal mode RAII guard using stty
+const STDIN_FILENO: c_int = 0;
+const TCSANOW: c_int = 0;
+const ICANON: u32 = 0x0002;
+const ECHO: u32 = 0x0008;
+const VTIME: usize = 5;
+const VMIN: usize = 6;
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct Termios {
+    c_iflag: u32,
+    c_oflag: u32,
+    c_cflag: u32,
+    c_lflag: u32,
+    c_line: u8,
+    c_cc: [u8; 32],
+    c_ispeed: u32,
+    c_ospeed: u32,
+}
+
+unsafe extern "C" {
+    fn tcgetattr(fd: c_int, termios_p: *mut Termios) -> c_int;
+    fn tcsetattr(fd: c_int, optional_actions: c_int, termios_p: *const Termios) -> c_int;
+}
+
+/// Raw terminal mode RAII guard using Unix terminal APIs directly.
 pub struct RawMode {
-    original_settings: String,
+    original_settings: Termios,
 }
 
 impl RawMode {
     pub fn enable() -> io::Result<Self> {
-        // Save current terminal settings
-        let output = Command::new("stty").arg("-g").output()?;
+        let mut original_settings = MaybeUninit::<Termios>::uninit();
 
-        let original_settings = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        // SAFETY: tcgetattr writes a Termios struct for a valid file descriptor.
+        if unsafe { tcgetattr(STDIN_FILENO, original_settings.as_mut_ptr()) } == -1 {
+            return Err(io::Error::last_os_error());
+        }
 
-        // Enable raw mode: disable canonical mode and echo
-        Command::new("stty").args(["-icanon", "-echo"]).status()?;
+        // SAFETY: tcgetattr succeeded, so the struct was initialized.
+        let original_settings = unsafe { original_settings.assume_init() };
+        let mut raw_settings = original_settings;
+
+        raw_settings.c_lflag &= !(ICANON | ECHO);
+        raw_settings.c_cc[VMIN] = 1;
+        raw_settings.c_cc[VTIME] = 0;
+
+        // SAFETY: raw_settings is a valid Termios struct derived from tcgetattr.
+        if unsafe { tcsetattr(STDIN_FILENO, TCSANOW, &raw_settings) } == -1 {
+            return Err(io::Error::last_os_error());
+        }
 
         Ok(Self { original_settings })
     }
@@ -22,8 +60,8 @@ impl RawMode {
 
 impl Drop for RawMode {
     fn drop(&mut self) {
-        // Restore original terminal settings
-        let _ = Command::new("stty").arg(&self.original_settings).status();
+        // SAFETY: original_settings was captured from tcgetattr for this terminal.
+        let _ = unsafe { tcsetattr(STDIN_FILENO, TCSANOW, &self.original_settings) };
     }
 }
 
