@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 pub mod ls;
 pub mod help;
+pub mod cd;
 pub mod pwd;
 use crate::utils::errors::ShellErrs;
 
@@ -30,6 +31,14 @@ pub fn init_registry() -> HashMap<String, Command> {
                 name: "help".to_string(),
                 func: help::run as CmdFn,
                 usage: help::USAGE.to_string(),
+            },
+        );
+        reg.insert(
+            "cd".to_string(),
+            Command {
+                name: "cd".to_string(),
+                func: cd::run as CmdFn,
+                usage: cd::USAGE.to_string(),
             },
         );
         reg.insert(
