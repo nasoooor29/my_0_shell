@@ -2,13 +2,13 @@
 
 ## Commands Not Implemented
 
-- `echo`
-- `cat`
-- `cp`
-- `rm`: needs `-r`
-- `mv`
-- `mkdir`
-- `ls`: needs `-F`
+- [ ] `echo`
+- [ ] `cat`
+- [ ] `cp`
+- [ ] `rm`: needs `-r`
+- [ ] `mv`
+- [ ] `mkdir`
+- [ ] `ls`: needs `-F`
 
 ## Other Things
 
