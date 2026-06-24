@@ -4,6 +4,7 @@ pub mod ls;
 pub mod help;
 pub mod exit;
 pub mod cd;
+pub mod echo;
 pub mod pwd;
 use crate::utils::errors::ShellErrs;
 
@@ -48,6 +49,14 @@ pub fn init_registry() -> HashMap<String, Command> {
                 name: "cd".to_string(),
                 func: cd::run as CmdFn,
                 usage: cd::USAGE.to_string(),
+            },
+        );
+        reg.insert(
+            "echo".to_string(),
+            Command {
+                name: "echo".to_string(),
+                func: echo::run as CmdFn,
+                usage: echo::USAGE.to_string(),
             },
         );
         reg.insert(
