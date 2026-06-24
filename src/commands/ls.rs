@@ -2,7 +2,7 @@ use crate::define_options;
 use crate::utils::errors::ShellErrs;
 use crate::utils::format::{self, colors};
 use std::fs;
-use std::os::unix::fs::{MetadataExt, PermissionsExt};
+use std::os::unix::fs::{FileTypeExt, MetadataExt, PermissionsExt};
 use std::path::Path;
 
 pub static USAGE: &str = "
@@ -11,6 +11,7 @@ Options:
     -a    Show all files, including hidden files
     -l    Use a long listing format
     -h    Show file sizes in human-readable format
+    -F    Append indicator (one of */=>@|) to entries
 ";
 
 define_options!(LsOptions {
@@ -18,6 +19,7 @@ define_options!(LsOptions {
         'a' => show_all,
         'l' => long_format,
         'h' => human_readable,
+        'F' => classify,
     },
     positional: paths,
     default_positional: ".",
@@ -109,6 +111,8 @@ fn print_entry(path: &Path, options: &LsOptions) -> Result<(), ShellErrs> {
         };
         let modified = format::file_time(metadata.modified().ok());
 
+        let display_name = format_display_name(&name, path, Some(&metadata), options.classify);
+
         println!(
             "{} {:>3} {:>5} {:>5} {} {} {}",
             perms,
@@ -117,12 +121,50 @@ fn print_entry(path: &Path, options: &LsOptions) -> Result<(), ShellErrs> {
             gid,
             size,
             modified,
-            colors::colorize_file(&name, Some(&metadata))
+            colors::colorize_file(&display_name, Some(&metadata))
         );
     } else {
         let metadata = path.metadata().ok();
-        print!("{}  ", colors::colorize_file(&name, metadata.as_ref()));
+        let display_name = format_display_name(&name, path, metadata.as_ref(), options.classify);
+        print!(
+            "{}  ",
+            colors::colorize_file(&display_name, metadata.as_ref())
+        );
     }
 
     Ok(())
+}
+
+fn format_display_name(
+    name: &str,
+    path: &Path,
+    metadata: Option<&fs::Metadata>,
+    classify: bool,
+) -> String {
+    if !classify {
+        return name.to_string();
+    }
+
+    let link_metadata = path.symlink_metadata().ok();
+    let metadata = link_metadata.as_ref().or(metadata);
+
+    format!("{}{}", name, metadata.map(classify_indicator).unwrap_or(""))
+}
+
+fn classify_indicator(metadata: &fs::Metadata) -> &'static str {
+    let file_type = metadata.file_type();
+
+    if file_type.is_dir() {
+        "/"
+    } else if file_type.is_symlink() {
+        "@"
+    } else if file_type.is_fifo() {
+        "|"
+    } else if file_type.is_socket() {
+        "="
+    } else if metadata.permissions().mode() & 0o111 != 0 {
+        "*"
+    } else {
+        ""
+    }
 }

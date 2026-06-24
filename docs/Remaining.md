@@ -8,7 +8,7 @@
 - [ ] `rm`: needs `-r`
 - [ ] `mv`
 - [ ] `mkdir`
-- [ ] `ls`: needs `-F`
+- [x] `ls`: supports `-F`
 
 ## Other Things
 
