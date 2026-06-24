@@ -4,6 +4,7 @@ pub mod ls;
 pub mod help;
 pub mod exit;
 pub mod cd;
+pub mod mkdir;
 pub mod echo;
 pub mod pwd;
 use crate::utils::errors::ShellErrs;
@@ -49,6 +50,14 @@ pub fn init_registry() -> HashMap<String, Command> {
                 name: "cd".to_string(),
                 func: cd::run as CmdFn,
                 usage: cd::USAGE.to_string(),
+            },
+        );
+        reg.insert(
+            "mkdir".to_string(),
+            Command {
+                name: "mkdir".to_string(),
+                func: mkdir::run as CmdFn,
+                usage: mkdir::USAGE.to_string(),
             },
         );
         reg.insert(

@@ -7,7 +7,7 @@
 - [ ] `cp`
 - [ ] `rm`: needs `-r`
 - [ ] `mv`
-- [ ] `mkdir`
+- [x] `mkdir`
 - [x] `ls`: supports `-F`
 
 ## Other Things
