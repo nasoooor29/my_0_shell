@@ -19,7 +19,7 @@ define_options!(EchoOptions {
 pub fn run(args: &[String]) -> Result<(), ShellErrs> {
     let options = EchoOptions::parse(args)?;
 
-    print!("{}", options.args.join(" "));
+    println!("{}", options.args.join(" "));
     if options.no_newline {
         io::stdout()
             .flush()
